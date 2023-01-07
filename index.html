@@ -1,79 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Menu jQuery UI</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
-  <link rel="stylesheet" href="./style.css">
-  <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-  <script src="https://ilikenwf.github.io/jquery.mjs.nestedSortable.js"></script>
+    <meta charset="utf-8">
+    <title>nestedSortable jQuery Plugin</title>
+    <meta content="Demo page of the nestedSortable jQuery Plugin" name="description">
+    <meta content="Manuele J Sarfatti" name="author">
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="https://ilikenwf.github.io/jquery.mjs.nestedSortable.js"></script>
+
+    <script>
+        $().ready(function () {
+            var ns = $('ol.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: 'div',
+                helper: 'clone',
+                items: 'li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 4,
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: false,
+                change: function () {
+                    console.log('Relocated item');
+                }
+            });
+
+            $('.deleteMenu').attr('title', 'Click to delete item.');
+
+
+            $('.deleteMenu').click(function () {
+                var id = $(this).attr('data-id');
+                $('#menuItem_' + id).remove();
+            });
+
+            $('#serialize').click(function () {
+                serialized = $('ol.sortable').nestedSortable('serialize');
+                $('#serializeOutput').text(serialized + '\n\n');
+            })
+
+            $('#toHierarchy').click(function (e) {
+                hiered = $('ol.sortable').nestedSortable('toHierarchy', {
+                    startDepthCount: 0
+                });
+                hiered = dump(hiered);
+                (typeof ($('#toHierarchyOutput')[0].textContent) != 'undefined') ?
+                $('#toHierarchyOutput')[0].textContent = hiered: $('#toHierarchyOutput')[0].innerText =
+                    hiered;
+            })
+
+            $('#toArray').click(function (e) {
+                arraied = $('ol.sortable').nestedSortable('toArray', {
+                    startDepthCount: 0
+                });
+                arraied = dump(arraied);
+                (typeof ($('#toArrayOutput')[0].textContent) != 'undefined') ?
+                $('#toArrayOutput')[0].textContent = arraied: $('#toArrayOutput')[0].innerText =
+                    arraied;
+            });
+        });
+
+        function dump(arr, level) {
+            var dumped_text = "";
+            if (!level) level = 0;
+
+            //The padding given at the beginning of the line.
+            var level_padding = "";
+            for (var j = 0; j < level + 1; j++) level_padding += "    ";
+
+            if (typeof (arr) == 'object') { //Array/Hashes/Objects
+                for (var item in arr) {
+                    var value = arr[item];
+
+                    if (typeof (value) == 'object') { //If it is an array,
+                        dumped_text += level_padding + "'" + item + "' ...\n";
+                        dumped_text += dump(value, level + 1);
+                    } else {
+                        dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
+                    }
+                }
+            } else { //Strings/Chars/Numbers etc.
+                dumped_text = "===>" + arr + "<===(" + typeof (arr) + ")";
+            }
+            return dumped_text;
+        }
+
+    </script>
 </head>
 
 <body>
-  <div class="menu-box">
-    <ul class="menu-list sortable">
-      <li><a href="javascript:void(0)">menu 1</a></li>
-      <li><a href="javascript:void(0)">menu 2</a>
-        <ul class="submenu-list">
-          <li><a href="javascript:void(0)">submenu 2.1</a></li>
-          <li><a href="javascript:void(0)">submenu 2.2</a></li>
-        </ul>
-      </li>
-      <li><a href="javascript:void(0)">menu 3</a></li>
-    </ul>
-  </div>
 
-  <script>
-$(document).ready(function () {
-  // Define a function that builds the menu hierarchy
-  function buildMenuHierarchy(menuElement) {
-    // Create an empty object to store the menu item's data
-    var menuItem = {};
-
-    // Add the menu item's text, URL, and sort order to the object
-    menuItem.text = $(menuElement).find('a').text();
-    menuItem.url = $(menuElement).find('a').attr('href');
-    menuItem.sortOrder = $(menuElement).index();
-
-    // If the menu item has a submenu, recursively build the hierarchy for the submenu
-    if ($(menuElement).find('ul').length > 0) {
-      menuItem.submenu = [];
-      $(menuElement).find('ul').children().each(function () {
-        menuItem.submenu.push(buildMenuHierarchy(this));
-      });
-    }
-
-    // Return the menu item object
-    return menuItem;
-  }
-
-  // Initialize the nested sortable plugin
-  $('.sortable').nestedSortable({
-    forcePlaceholderSize: true,
-    items: 'li',
-    handle: 'a',
-    placeholder: 'menu-highlight',
-    listType: 'ul',
-    maxLevels: 2,
-    opacity: .6,
-    stop: function () {
-      // Build the menu hierarchy
-      var menuHierarchy = [];
-      $('.sortable').children().each(function () {
-        menuHierarchy.push(buildMenuHierarchy(this));
-      });
-
-      // Convert the hierarchy to a JSON string and print it
-      console.log(JSON.stringify(menuHierarchy));
-    }
-  });
-});
+    <section>
+        <ol class="sortable ui-sortable mjs-nestedSortable-branch mjs-nestedSortable-expanded">
+            <li style="display: list-item;" class="mjs-nestedSortable-branch mjs-nestedSortable-expanded"
+                id="menuItem_2" data-foo="bar">
+                <div class="menuDiv">
 
 
-  </script>
+                    <span>
+                        <span data-id="2" class="itemTitle">a</span>
+                        <span title="Click to delete item." data-id="2" class="deleteMenu ui-icon ui-icon-closethick">
+                            <span></span>
+                        </span>
+                    </span>
+                </div>
+                <ol>
+                    <li style="display: list-item;" class="mjs-nestedSortable-branch mjs-nestedSortable-expanded"
+                        id="menuItem_4" data-foo="baz">
+                        <div class="menuDiv">
 
+
+                            <span>
+                                <span data-id="4" class="itemTitle">c</span>
+                                <span title="Click to delete item." data-id="4"
+                                    class="deleteMenu ui-icon ui-icon-closethick">
+                                    <span></span>
+                                </span>
+                            </span>
+                        </div>
+                        <ol>
+                            <li class="mjs-nestedSortable-leaf" id="menuItem_6">
+                                <div class="menuDiv">
+
+
+                                    <span>
+                                        <span data-id="6" class="itemTitle">e</span>
+                                        <span title="Click to delete item." data-id="6"
+                                            class="deleteMenu ui-icon ui-icon-closethick">
+                                            <span></span>
+                                        </span>
+                                    </span>
+                                </div>
+                            </li>
+                        </ol>
+                    </li>
+                    <li style="display: list-item;" class="mjs-nestedSortable-leaf" id="menuItem_5">
+                        <div class="menuDiv">
+
+
+                            <span>
+                                <span data-id="5" class="itemTitle">d</span>
+                                <span title="Click to delete item." data-id="5"
+                                    class="deleteMenu ui-icon ui-icon-closethick">
+                                    <span></span>
+                                </span>
+                            </span>
+                        </div>
+                    </li>
+                </ol>
+            </li>
+            <ol>
+            </ol>
+            <li style="display: list-item;" class="mjs-nestedSortable-leaf" id="menuItem_7">
+                <div class="menuDiv">
+
+
+                    <span>
+                        <span data-id="7" class="itemTitle">f</span>
+                        <span title="Click to delete item." data-id="7" class="deleteMenu ui-icon ui-icon-closethick">
+                            <span></span>
+                        </span>
+                    </span>
+                </div>
+            </li>
+            <li class="mjs-nestedSortable-leaf" id="menuItem_3">
+                <div class="menuDiv">
+
+                    <span>
+                        <span data-id="3" class="itemTitle">b</span>
+                        <span title="Click to delete item." data-id="3" class="deleteMenu ui-icon ui-icon-closethick">
+                            <span></span>
+                        </span>
+                    </span>
+                </div>
+            </li>
+        </ol>
+
+        <h3>Try the custom methods:</h3>
+
+        <p><br>
+            <input id="serialize" name="serialize" type="submit" value="Serialize"></p>
+        <pre id="serializeOutput">
+		</pre>
+
+        <p><input id="toArray" name="toArray" type="submit" value="To array"></p>
+        <pre id="toArrayOutput">
+		</pre>
+
+        <p><input id="toHierarchy" name="toHierarchy" type="submit" value="To hierarchy"></p>
+        <pre id="toHierarchyOutput">
+		</pre>
+
+    </section><!-- END #demo -->
 </body>
 
 </html>
