@@ -1,205 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="utf-8">
-    <title>nestedSortable jQuery Plugin</title>
-    <meta content="Demo page of the nestedSortable jQuery Plugin" name="description">
-    <meta content="Manuele J Sarfatti" name="author">
+    <title>Menu jQuery UI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
     <link rel="stylesheet" href="{{ asset('style.css') }}">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" />
-    <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.min.js"></script>
-    <script type="text/javascript" src="https://ilikenwf.github.io/jquery.mjs.nestedSortable.js"></script>
-
-    <script>
-        $().ready(function () {
-            var ns = $('ol.sortable').nestedSortable({
-                forcePlaceholderSize: true,
-                handle: 'div',
-                helper: 'clone',
-                items: 'li',
-                opacity: .6,
-                placeholder: 'placeholder',
-                revert: 250,
-                tabSize: 25,
-                tolerance: 'pointer',
-                toleranceElement: '> div',
-                maxLevels: 4,
-                isTree: true,
-                expandOnHover: 700,
-                startCollapsed: false,
-                change: function () {
-                    console.log('Relocated item');
-                }
-            });
-
-            $('.deleteMenu').attr('title', 'Click to delete item.');
-
-
-            $('.deleteMenu').click(function () {
-                var id = $(this).attr('data-id');
-                $('#menuItem_' + id).remove();
-            });
-
-            $('#serialize').click(function () {
-                serialized = $('ol.sortable').nestedSortable('serialize');
-                $('#serializeOutput').text(serialized + '\n\n');
-            })
-
-            $('#toHierarchy').click(function (e) {
-                hiered = $('ol.sortable').nestedSortable('toHierarchy', {
-                    startDepthCount: 0
-                });
-                hiered = dump(hiered);
-                (typeof ($('#toHierarchyOutput')[0].textContent) != 'undefined') ?
-                $('#toHierarchyOutput')[0].textContent = hiered: $('#toHierarchyOutput')[0].innerText =
-                    hiered;
-            })
-
-            $('#toArray').click(function (e) {
-                arraied = $('ol.sortable').nestedSortable('toArray', {
-                    startDepthCount: 0
-                });
-                arraied = dump(arraied);
-                (typeof ($('#toArrayOutput')[0].textContent) != 'undefined') ?
-                $('#toArrayOutput')[0].textContent = arraied: $('#toArrayOutput')[0].innerText =
-                    arraied;
-            });
-        });
-
-        function dump(arr, level) {
-            var dumped_text = "";
-            if (!level) level = 0;
-
-            //The padding given at the beginning of the line.
-            var level_padding = "";
-            for (var j = 0; j < level + 1; j++) level_padding += "    ";
-
-            if (typeof (arr) == 'object') { //Array/Hashes/Objects
-                for (var item in arr) {
-                    var value = arr[item];
-
-                    if (typeof (value) == 'object') { //If it is an array,
-                        dumped_text += level_padding + "'" + item + "' ...\n";
-                        dumped_text += dump(value, level + 1);
-                    } else {
-                        dumped_text += level_padding + "'" + item + "' => \"" + value + "\"\n";
-                    }
-                }
-            } else { //Strings/Chars/Numbers etc.
-                dumped_text = "===>" + arr + "<===(" + typeof (arr) + ")";
-            }
-            return dumped_text;
-        }
-
-    </script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://ilikenwf.github.io/jquery.mjs.nestedSortable.js"></script>
 </head>
 
 <body>
 
-    <section>
-        <ol class="sortable ui-sortable mjs-nestedSortable-branch mjs-nestedSortable-expanded">
-            <li style="display: list-item;" class="mjs-nestedSortable-branch mjs-nestedSortable-expanded"
-                id="menuItem_2" data-foo="bar">
-                <div class="menuDiv">
+    <div class="menu-box">
+        <ul class="menu-list sortable">
 
-
-                    <span>
-                        <span data-id="2" class="itemTitle">a</span>
-                        <span title="Click to delete item." data-id="2" class="deleteMenu ui-icon ui-icon-closethick">
-                            <span></span>
-                        </span>
-                    </span>
-                </div>
-                <ol>
-                    <li style="display: list-item;" class="mjs-nestedSortable-branch mjs-nestedSortable-expanded"
-                        id="menuItem_4" data-foo="baz">
-                        <div class="menuDiv">
-
-
-                            <span>
-                                <span data-id="4" class="itemTitle">c</span>
-                                <span title="Click to delete item." data-id="4"
-                                    class="deleteMenu ui-icon ui-icon-closethick">
-                                    <span></span>
-                                </span>
-                            </span>
-                        </div>
-                        <ol>
-                            <li class="mjs-nestedSortable-leaf" id="menuItem_6">
-                                <div class="menuDiv">
-
-
-                                    <span>
-                                        <span data-id="6" class="itemTitle">e</span>
-                                        <span title="Click to delete item." data-id="6"
-                                            class="deleteMenu ui-icon ui-icon-closethick">
-                                            <span></span>
-                                        </span>
-                                    </span>
-                                </div>
-                            </li>
-                        </ol>
+            @foreach ($array as $item)
+                @if ($item['parent_id'] === null)
+                    <li data-id="{{ $item['id'] }}" data-label="{{ $item['text'] }}" data-sort="{{ $item['sort'] }}"><a href="javascript:void(0)">{{ $item['sort'] }}. {{ $item['text'] }}</a>
+                        @if ($item['children'])
+                            <ul class="submenu-list">
+                                @foreach ($item['children'] as $subitem)
+                                    @if ($subitem['parent_id'] === $item['id'])
+                                        <li data-id="{{ $subitem['id'] }}" data-label="{{ $subitem['text'] }}"  data-sort="{{ $subitem['sort'] }}"><a href="javascript:void(0)">{{ $subitem['sort'] }}. {{ $subitem['text'] }}</a></li>
+                                    @endif
+                                @endforeach
+                            </ul>
+                        @endif
                     </li>
-                    <li style="display: list-item;" class="mjs-nestedSortable-leaf" id="menuItem_5">
-                        <div class="menuDiv">
+                   
+                @endif
+            @endforeach
+        </ul>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize the nested sortable plugin
+            $('.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                items: 'li',
+                handle: 'a',
+                placeholder: 'menu-highlight',
+                listType: 'ul',
+                maxLevels: 2,
+                opacity: .6,
+                // Update the JSON representation of the menu when the sorting is updated
+                stop: function () {
+    // Get all of the li elements in the menu
+    const menuItems = document.querySelectorAll('.menu-list li');
+    // Initialize the counter variable
+    let counter = 1;
+    // Convert the NodeList of menu items to an array
+    const menuArray = Array.from(menuItems).map(item => {
+        // Update the serial number for the item
+        item.setAttribute('data-sort', counter);
+        // Update the text of the item to include the serial number
+        item.querySelector('a').textContent = `${counter}. ${item.getAttribute('data-label')}`;
+        const parent = item.parentElement.closest('li');
+        const parentId = parent ? parent.getAttribute('data-id') : null;
+        // Increment the counter
+        counter++;
+        return {
+            id: item.getAttribute('data-id'),
+            parentId: parentId,
+            text: item.getAttribute('data-label'),
+            sort: item.getAttribute('data-sort'),
+        };
+    });
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: '{{ route("store.menu") }}',
+        data: {
+            menu: menuArray,
+            menu_id: 1, // main menu id
+        },
+        success: function(data) {
+            console.log(data);
+        }
+    });
+}
 
 
-                            <span>
-                                <span data-id="5" class="itemTitle">d</span>
-                                <span title="Click to delete item." data-id="5"
-                                    class="deleteMenu ui-icon ui-icon-closethick">
-                                    <span></span>
-                                </span>
-                            </span>
-                        </div>
-                    </li>
-                </ol>
-            </li>
-            <ol>
-            </ol>
-            <li style="display: list-item;" class="mjs-nestedSortable-leaf" id="menuItem_7">
-                <div class="menuDiv">
+            });
 
+        });
 
-                    <span>
-                        <span data-id="7" class="itemTitle">f</span>
-                        <span title="Click to delete item." data-id="7" class="deleteMenu ui-icon ui-icon-closethick">
-                            <span></span>
-                        </span>
-                    </span>
-                </div>
-            </li>
-            <li class="mjs-nestedSortable-leaf" id="menuItem_3">
-                <div class="menuDiv">
+    </script>
 
-                    <span>
-                        <span data-id="3" class="itemTitle">b</span>
-                        <span title="Click to delete item." data-id="3" class="deleteMenu ui-icon ui-icon-closethick">
-                            <span></span>
-                        </span>
-                    </span>
-                </div>
-            </li>
-        </ol>
-
-        <h3>Try the custom methods:</h3>
-
-        <p><br>
-            <input id="serialize" name="serialize" type="submit" value="Serialize"></p>
-        <pre id="serializeOutput">
-		</pre>
-
-        <p><input id="toArray" name="toArray" type="submit" value="To array"></p>
-        <pre id="toArrayOutput">
-		</pre>
-
-        <p><input id="toHierarchy" name="toHierarchy" type="submit" value="To hierarchy"></p>
-        <pre id="toHierarchyOutput">
-		</pre>
-
-    </section><!-- END #demo -->
 </body>
 
 </html>
