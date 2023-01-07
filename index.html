@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Menu jQuery UI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+  <link rel="stylesheet" href="./style.css">
+  <link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  <script src="https://ilikenwf.github.io/jquery.mjs.nestedSortable.js"></script>
+</head>
+
+<body>
+  <div class="menu-box">
+    <ul class="menu-list sortable">
+      <li><a href="javascript:void(0)">menu 1</a></li>
+      <li><a href="javascript:void(0)">menu 2</a>
+        <ul class="submenu-list">
+          <li><a href="javascript:void(0)">submenu 2.1</a></li>
+          <li><a href="javascript:void(0)">submenu 2.2</a></li>
+        </ul>
+      </li>
+      <li><a href="javascript:void(0)">menu 3</a></li>
+    </ul>
+  </div>
+
+  <script>
+$(document).ready(function () {
+  // Define a function that builds the menu hierarchy
+  function buildMenuHierarchy(menuElement) {
+    // Create an empty object to store the menu item's data
+    var menuItem = {};
+
+    // Add the menu item's text, URL, and sort order to the object
+    menuItem.text = $(menuElement).find('a').text();
+    menuItem.url = $(menuElement).find('a').attr('href');
+    menuItem.sortOrder = $(menuElement).index();
+
+    // If the menu item has a submenu, recursively build the hierarchy for the submenu
+    if ($(menuElement).find('ul').length > 0) {
+      menuItem.submenu = [];
+      $(menuElement).find('ul').children().each(function () {
+        menuItem.submenu.push(buildMenuHierarchy(this));
+      });
+    }
+
+    // Return the menu item object
+    return menuItem;
+  }
+
+  // Initialize the nested sortable plugin
+  $('.sortable').nestedSortable({
+    forcePlaceholderSize: true,
+    items: 'li',
+    handle: 'a',
+    placeholder: 'menu-highlight',
+    listType: 'ul',
+    maxLevels: 2,
+    opacity: .6,
+    stop: function () {
+      // Build the menu hierarchy
+      var menuHierarchy = [];
+      $('.sortable').children().each(function () {
+        menuHierarchy.push(buildMenuHierarchy(this));
+      });
+
+      // Convert the hierarchy to a JSON string and print it
+      console.log(JSON.stringify(menuHierarchy));
+    }
+  });
+});
+
+
+  </script>
+
+</body>
+
+</html>
